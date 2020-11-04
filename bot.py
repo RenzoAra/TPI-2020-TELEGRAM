@@ -45,19 +45,26 @@ def start(update,context):
 
 def random_number(update,context):
     user_id = update.effective_user['id']
+    chat_id = update.effective_chat['id']
     logger.info(f"El {user_id}, ha solicitado un numero aleatorio")
     number = random.randint(0,10)
-    context.bot.sendMessage(chat_id = user_id, parse_mode="HTML", text=f"<b>Numero</b> aleatorio:\n{number}")
+    context.bot.sendMessage(chat_id = chat_id, parse_mode="HTML", text=f"<b>Numero</b> aleatorio:\n{number}")
+    #update.message.reply_text(f"Numero aleatorio: {number}")
 
-def echo(update,context):
+"""def echo(update,context):
     user_id = update.effective_user['id']
-    logger.info(f"El {user_id}, ha enviado un mensaje de texto")
+    logger.info(f"El usuario {user_id}, ha enviado un mensaje de texto")
     text = update.message.text
     context.bot.sendMessage (
         chat_id = user_id,
         parse_mode = "MarkdownV2",
         text = f"*Escribiste*\n_{text}_"
-    )
+    )"""
+
+def hola(update, context):
+    name = update.effective_user['first_name']
+    if(update.message.text.upper().find("HOLA") >= 0):
+        update.message.reply_text(f"Hola {name}")
 
 
 if __name__ == "__main__":
@@ -77,7 +84,8 @@ dp = updater.dispatcher
 
 dp.add_handler(CommandHandler("start",start))
 dp.add_handler(CommandHandler("random",random_number))
-dp.add_handler(MessageHandler(Filters.text, echo))
+#dp.add_handler(MessageHandler(Filters.text, echo))
+dp.add_handler(MessageHandler(Filters.text, hola))
 
 run(updater)
 
