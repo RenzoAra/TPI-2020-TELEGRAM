@@ -3,7 +3,10 @@ import os
 import telegram
 import random
 import sys
+import urllib.request, json
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import MessageEntity
+
 
 #configurar loggin
 
@@ -39,7 +42,7 @@ else:
 
 
 def start(update,context):
-    logger.info(f"El usuario {update.effective_user['username']}, ha iniciado una conversacion")
+    logger.info(f"El usuario {update.effective_user['first_name']}, ha iniciado una conversacion")
     name = update.effective_user['first_name']
     update.message.reply_text(f"Hola {name} yo soy tu bot.")
 
@@ -48,23 +51,64 @@ def random_number(update,context):
     chat_id = update.effective_chat['id']
     logger.info(f"El {user_id}, ha solicitado un numero aleatorio")
     number = random.randint(0,10)
-    context.bot.sendMessage(chat_id = chat_id, parse_mode="HTML", text=f"<b>Numero</b> aleatorio:\n{number}")
-    #update.message.reply_text(f"Numero aleatorio: {number}")
+    context.bot.send_message(chat_id=chat_id, text='<b>bold</b> <i>italic</i> <a href="http://google.com">link</a>.', parse_mode=telegram.ParseMode.HTML)
+    #context.bot.sendMessage(chat_id = chat_id, parse_mode="HTML", text=f"<a href="http://www.example.com/">inline URL</a>")
+    #context.bot.sendMessage(chat_id = chat_id, parse_mode="HTML", text=f"<b>Numero</b> aleatorio:\n{number}")
+    update.message.reply_text(f"Numero aleatorio: {number}")
+    
 
 """def echo(update,context):
     user_id = update.effective_user['id']
+    chat_id = update.effective_chat['id']
     logger.info(f"El usuario {user_id}, ha enviado un mensaje de texto")
     text = update.message.text
     context.bot.sendMessage (
-        chat_id = user_id,
+        chat_id = chat_id,
         parse_mode = "MarkdownV2",
         text = f"*Escribiste*\n_{text}_"
     )"""
 
-def hola(update, context):
+"""def fetchjson(url):
+    resp = urllib.request.urlopen(url)
+    return json.dumps(resp.read().decode)"""
+
+
+def download(update, context):
+    user_id = update.effective_user['id']
+    chat_id = update.effective_chat['id']
+    logger.info(f"El {user_id}, ha solicitado una busqueda")
+    x = update.message.parse_entities(types=MessageEntity.URL)
+    print(x)
+    for i in x:
+        a = ""+x[i]
+        print(type(a))
+    thepage = urllib.request.urlopen(a).read().decode('utf-8')
+    #print(thepage)
+    var2 = json.loads(thepage)
+    print("EL TIPO DE VAR 2 ES: ", type(var2))
+    print(var2)
+    print(var2[0])
+    titulo = var2[0]["title"]
+    subtitulo = var2[0]["subtitle"]
+    imagen = var2[0]["img"]
+    link = var2[0]["path"]
+    #print("Título => " , var2[0]["title"])
+    update.message.reply_text(f"Título: {titulo}")
+    update.message.reply_text(f"Subtitulo: {subtitulo}")
+    update.message.reply_text(f"Imagen: {imagen}")
+    update.message.reply_text(f"Link: {link}")
+    #context.bot.send_message(chat_id=chat_id, text=f"<b>Numero aleatorio:</b> {titulo}", parse_mode=telegram.ParseMode.HTML)
+    #print(var1)
+    #resp = urllib.request.urlopen('https://playlistmaker.app.smartmock.io/musica?comando=play&search=tubusqueda')
+    #print(resp)
+    #thepage = urllib.request.urlopen('https://playlistmaker.app.smartmock.io/musica?comando=play&search=tubusqueda').read().decode('utf-8')
+    #print(thepage)
+    
+
+"""def hola(update, context):
     name = update.effective_user['first_name']
     if(update.message.text.upper().find("HOLA") >= 0):
-        update.message.reply_text(f"Hola {name}")
+        update.message.reply_text(f"Hola {name}")"""
 
 
 if __name__ == "__main__":
@@ -84,8 +128,10 @@ dp = updater.dispatcher
 
 dp.add_handler(CommandHandler("start",start))
 dp.add_handler(CommandHandler("random",random_number))
+dp.add_handler(MessageHandler(Filters.entity(MessageEntity.URL) ,download))
+#dp.add_handler(MessageHandler(Filters.text, hola))
 #dp.add_handler(MessageHandler(Filters.text, echo))
-dp.add_handler(MessageHandler(Filters.text, hola))
+
 
 run(updater)
 
