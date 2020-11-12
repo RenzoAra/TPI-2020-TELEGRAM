@@ -4,8 +4,12 @@ import telegram
 import random
 import sys
 import urllib.request, json
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import MessageEntity
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from telegram import MessageEntity, InlineKeyboardMarkup
+from pytube import YouTube, Playlist
+import telebot
+import requests
+import youtube_dl
 
 
 #configurar loggin
@@ -19,6 +23,7 @@ logger = logging.getLogger()
 
 TOKEN = os.getenv("TOKEN")
 mode = os.getenv("MODE")
+ydl = youtube_dl.YoutubeDL({'outtmpl': '%(id)s%(ext)s'})
 
 if mode == 'dev':
     #acceso local (desarrollo)
@@ -72,10 +77,9 @@ def random_number(update,context):
     resp = urllib.request.urlopen(url)
     return json.dumps(resp.read().decode)"""
 
-
 def download(update, context):
     user_id = update.effective_user['id']
-    chat_id = update.effective_chat['id']
+    #chat_id = update.effective_chat['id']
     logger.info(f"El {user_id}, ha solicitado una busqueda")
     x = update.message.parse_entities(types=MessageEntity.URL)
     print(x)
@@ -91,12 +95,35 @@ def download(update, context):
     titulo = var2[0]["title"]
     subtitulo = var2[0]["subtitle"]
     imagen = var2[0]["img"]
-    link = var2[0]["path"]
+    enlace = var2[0]["path"]
     #print("Título => " , var2[0]["title"])
     update.message.reply_text(f"Título: {titulo}")
     update.message.reply_text(f"Subtitulo: {subtitulo}")
     update.message.reply_text(f"Imagen: {imagen}")
-    update.message.reply_text(f"Link: {link}")
+    update.message.reply_text(f"Link: {enlace}")
+    try:
+        with ydl:
+            result = ydl.extract_info(
+                enlace,
+                download=False  # We just want to extract the info
+            )
+
+        if 'entries' in result:
+            # Can be a playlist or a list of videos
+            video = result['entries'][0]
+        else:
+            # Just a video
+            video = result
+        
+        for i in video['formats']:
+            link = '<a href=\"' + i['url'] + '\">' + 'link' + '</a>'
+
+            if i.get('format_note'):
+                update.message.reply_text( 'Quality- ' + i['format_note'] + ': ' + link, parse_mode='HTML')
+            else:
+                update.message.reply_text( link, parse_mode='HTML', disable_notification=True)
+    except:
+        update.message.reply_text('This can\'t be downloaded by me')    
     #context.bot.send_message(chat_id=chat_id, text=f"<b>Numero aleatorio:</b> {titulo}", parse_mode=telegram.ParseMode.HTML)
     #print(var1)
     #resp = urllib.request.urlopen('https://playlistmaker.app.smartmock.io/musica?comando=play&search=tubusqueda')
