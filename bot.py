@@ -77,18 +77,24 @@ def random_number(update,context):
     resp = urllib.request.urlopen(url)
     return json.dumps(resp.read().decode)"""
 
-def download(update, context):
+def buscar(update, context):
+    aux = update.message.text
+    x = aux.replace("/buscar ", "")
+    datos = "search="+x
+    print(datos)
+    r = requests.post('https://playlist-maker.azurewebsites.net/api/musica2?comando=play',params=datos)
+    var1 = r.text
+    print(var1)
     user_id = update.effective_user['id']
     #chat_id = update.effective_chat['id']
     logger.info(f"El {user_id}, ha solicitado una busqueda")
-    x = update.message.parse_entities(types=MessageEntity.URL)
+    """x = update.message.parse_entities(types=MessageEntity.URL)
     print(x)
     for i in x:
         a = ""+x[i]
         print(type(a))
-    thepage = urllib.request.urlopen(a).read().decode('utf-8')
-    #print(thepage)
-    var2 = json.loads(thepage)
+    thepage = urllib.request.urlopen(a).read().decode('utf-8')"""
+    var2 = json.loads(var1)
     print("EL TIPO DE VAR 2 ES: ", type(var2))
     print(var2)
     print(var2[0])
@@ -123,7 +129,7 @@ def download(update, context):
             else:
                 update.message.reply_text( link, parse_mode='HTML', disable_notification=True)
     except:
-        update.message.reply_text('This can\'t be downloaded by me')    
+        update.message.reply_text('This can\'t be downloaded by me')
     #context.bot.send_message(chat_id=chat_id, text=f"<b>Numero aleatorio:</b> {titulo}", parse_mode=telegram.ParseMode.HTML)
     #print(var1)
     #resp = urllib.request.urlopen('https://playlistmaker.app.smartmock.io/musica?comando=play&search=tubusqueda')
@@ -155,7 +161,8 @@ dp = updater.dispatcher
 
 dp.add_handler(CommandHandler("start",start))
 dp.add_handler(CommandHandler("random",random_number))
-dp.add_handler(MessageHandler(Filters.entity(MessageEntity.URL) ,download))
+dp.add_handler(CommandHandler("buscar",buscar))
+#dp.add_handler(MessageHandler(Filters.entity(MessageEntity.URL) ,buscar))
 #dp.add_handler(MessageHandler(Filters.text, hola))
 #dp.add_handler(MessageHandler(Filters.text, echo))
 
