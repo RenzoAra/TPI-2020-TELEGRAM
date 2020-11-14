@@ -102,34 +102,37 @@ def buscar(update, context):
     subtitulo = var2[0]["subtitle"]
     imagen = var2[0]["img"]
     enlace = var2[0]["path"]
+    tipo = var2[0]["type"]
+    print(tipo)
     #print("Título => " , var2[0]["title"])
     update.message.reply_text(f"Título: {titulo}")
     update.message.reply_text(f"Subtitulo: {subtitulo}")
     update.message.reply_text(f"Imagen: {imagen}")
     update.message.reply_text(f"Link: {enlace}")
-    try:
-        with ydl:
-            result = ydl.extract_info(
-                enlace,
-                download=False  # We just want to extract the info
-            )
+    if (tipo == 'youtube'):
+        try:
+            with ydl:
+                result = ydl.extract_info(
+                    enlace,
+                    download=False  # We just want to extract the info
+                )
 
-        if 'entries' in result:
-            # Can be a playlist or a list of videos
-            video = result['entries'][0]
-        else:
-            # Just a video
-            video = result
-        
-        for i in video['formats']:
-            link = '<a href=\"' + i['url'] + '\">' + 'link' + '</a>'
-
-            if i.get('format_note'):
-                update.message.reply_text( 'Quality- ' + i['format_note'] + ': ' + link, parse_mode='HTML')
+            if 'entries' in result:
+                # Can be a playlist or a list of videos
+                video = result['entries'][0]
             else:
-                update.message.reply_text( link, parse_mode='HTML', disable_notification=True)
-    except:
-        update.message.reply_text('This can\'t be downloaded by me')
+                # Just a video
+                video = result
+            
+            for i in video['formats']:
+                link = '<a href=\"' + i['url'] + '\">' + 'link' + '</a>'
+
+                if i.get('format_note'):
+                    update.message.reply_text( 'Quality- ' + i['format_note'] + ': ' + link, parse_mode='HTML')
+                else:
+                    update.message.reply_text( link, parse_mode='HTML', disable_notification=True)
+        except:
+            update.message.reply_text('This can\'t be downloaded by me')
     #context.bot.send_message(chat_id=chat_id, text=f"<b>Numero aleatorio:</b> {titulo}", parse_mode=telegram.ParseMode.HTML)
     #print(var1)
     #resp = urllib.request.urlopen('https://playlistmaker.app.smartmock.io/musica?comando=play&search=tubusqueda')
